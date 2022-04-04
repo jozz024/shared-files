@@ -128,6 +128,6 @@ pub fn get_file_size(path: &PathBuf) -> usize {
     
     match md {
         Ok(info) => info.len() as usize,
-        Err(_err) => 0
+        Err(_err) => 5000000
     }
 }
