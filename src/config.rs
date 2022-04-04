@@ -16,6 +16,8 @@ pub enum Section {
 #[derive(Debug)]
 pub struct Info {
     pub size: usize,
+    pub hash: Hash40,
+    pub fuse_path: String,
     pub path: PathBuf,
     pub section: Section
 }
@@ -98,7 +100,6 @@ fn add_to_config(content: String, path: &PathBuf) {
     for (k, v) in config.files.iter() {        
         let k = k.replace("stream:", "stream;").replace("prebuilt:", "prebuilt;"); // File that will be loaded
         for i in v {
-
             let i = i.replace("stream;", "stream:").replace("prebuilt;", "prebuilt:"); // File that will be hooked
             
             let mut file_path = path.to_path_buf();
@@ -107,6 +108,8 @@ fn add_to_config(content: String, path: &PathBuf) {
 
             SHARED_FILES.lock().unwrap().insert(Hash40::from(&i[..]).as_u64(), Info {
                 size: get_file_size(&file_path),
+                hash: Hash40::from(&k[..]),
+                fuse_path: format!("arc:/{}", k),
                 path: file_path,
                 section: {
                     if (i.contains("stream:")){
@@ -121,10 +124,10 @@ fn add_to_config(content: String, path: &PathBuf) {
 }
 
 pub fn get_file_size(path: &PathBuf) -> usize {
-    let md = metadata(&path).unwrap();
-    if !md.is_file() {
-        return 0;
+    let md = metadata(&path);
+    
+    match md {
+        Ok(info) => info.len() as usize,
+        Err(_err) => 0
     }
-
-    md.len() as usize
 }

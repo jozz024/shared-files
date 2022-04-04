@@ -17,7 +17,15 @@ fn normal_callback(hash: u64, data: &mut [u8]) -> Option<usize> {
                     Some(file.len())
                 }
                 Err(_err) => {
-                    load_original_file(hash, data)
+                    match std::fs::read(&info.fuse_path) {
+                        Ok(fuse_file) => {
+                            data[..fuse_file.len()].copy_from_slice(&fuse_file);
+                            Some(fuse_file.len())
+                        }
+                        Err(_err) => {
+                            load_original_file(&info.hash, data)
+                        }
+                    }
                 }
             }
         },
@@ -34,29 +42,8 @@ fn stream_callback(hash: u64) -> Option<PathBuf> {
 }
 
 fn get_configs() {
-    match std::fs::read_to_string("sd:/atmosphere/contents/01006A800016E000/romfs/arcropolis.toml")
-    {
-        Ok(content) => {
-            match content.parse::<Value>().unwrap()["paths"]["umm"].as_str() {
-                Some(res) => {
-                    read_from_umm_path(Path::new(&res.to_string()));
-                    println!("[Shared Files::main] Finished reading UMM path!");
-                }
-                None => println!("[Shared Files::main] Failed parsing ARCropolis config file (UMM Path)!"),
-            }
-            
-            match content.parse::<Value>().unwrap()["paths"]["arc"].as_str() {
-                Some(res) => {
-                    let mut path = PathBuf::from(&res.to_string());
-                    path.push("share.toml");
-                    read_from_rom_path(&Path::new(&path));
-                    println!("[Shared Files::main] Finished reading ARC path!");
-                }
-                None => println!("[Shared Files::main] Failed parsing ARCropolis config file (ARC Path)!"),
-            }
-        } 
-        Err(_) => println!("[Shared Files::main] ARCropolis file doesn't exist or failed to parse correctly!"),
-    };
+    read_from_umm_path(Path::new("sd:/ultimate/mods"));
+    println!("[Shared Files::main] Finished reading UMM path!");
 }
 
 #[skyline::main(name = "share-files")]

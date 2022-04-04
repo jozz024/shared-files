@@ -3,7 +3,7 @@ Share Files using ARCropolis API
 
 ## Requirements:
 
-- [ARCropolis 1.1.3 or higher](https://github.com/Raytwo/ARCropolis/releases/latest)
+- [ARCropolis 3.1.1 or higher](https://github.com/Raytwo/ARCropolis/releases/latest)
 
 ## Installation:
 
@@ -11,7 +11,7 @@ Share Files using ARCropolis API
 
 ## Usage:
 
-Create a file called `share.toml` in either `sd:/ultimate/mods/[Mod Folder]/` (UMM Path) or `rom:/arc/` (ARC Path)
+Create a file called `share.toml` in `sd:/ultimate/mods/[Mod Folder]/`
 
 Inside the `share.toml` file, create a array called `files`, then enter the file you want to be used and give it the value of an array with the files you'll share
 
@@ -28,4 +28,5 @@ will make `def_mario_001_col` in c02 and c01 load the `c00` file.
 
 ## Important Note
 
-The file that will be shared needs to exist in the folder that the `share.toml` goes to
+~~The file that will be shared needs to exist in the folder that the `share.toml` goes to~~
+Not anymore, unless the file is modded.
