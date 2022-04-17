@@ -7,6 +7,10 @@ lazy_static::lazy_static! {
     pub static ref SHARED_FILES: Mutex<HashMap<u64, Info>> = Mutex::new(HashMap::new());
 }
 
+extern "C" {
+    fn arcrop_is_mod_enabled<H: Into<Hash40>>(hash: H) -> bool;
+}
+
 #[derive(Debug)]
 pub enum Section {
     Normal,
@@ -32,7 +36,7 @@ pub fn read_from_umm_path(path: &Path) {
         Ok(res) => {
             for entry in res {
                 let entry = entry.unwrap();
-
+                let entry_str = format!("{}", entry_str.path().display())
                 let mut entry_path = path.to_path_buf();
                 entry_path.push(entry.path());
 
@@ -43,6 +47,8 @@ pub fn read_from_umm_path(path: &Path) {
                     .to_str()
                     .unwrap()
                     .starts_with(".")
+                    ||
+                    !arcrop_is_mod_enabled(Hash40::from(entry_str))
                 {
                     continue;
                 }
@@ -98,9 +104,12 @@ fn add_to_config(content: String, path: &PathBuf) {
     };
 
     for (k, v) in config.files.iter() {        
-        let k = k.replace("stream:", "stream;").replace("prebuilt:", "prebuilt;"); // File that will be loaded
+        // let k = k.replace("stream:", "stream;").replace("prebuilt:", "prebuilt;"); // File that will be loaded
+        let k = k.replace(":", ";"); // File that will be loaded
+        
         for i in v {
-            let i = i.replace("stream;", "stream:").replace("prebuilt;", "prebuilt:"); // File that will be hooked
+            // let i = i.replace("stream;", "stream:").replace("prebuilt;", "prebuilt:"); // File that will be hooked
+            let i = i.replace(";", ":"); // File that will be hooked
             
             let mut file_path = path.to_path_buf();
             file_path.push(&k);
