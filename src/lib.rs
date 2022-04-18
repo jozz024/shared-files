@@ -1,8 +1,7 @@
 #![feature(proc_macro_hygiene)]
 
 use arcropolis_api::*;
-use std::{path::{Path, PathBuf}, collections::HashMap};
-use toml::Value;
+use std::path::{Path, PathBuf};
 mod config;
 use config::*;
 
