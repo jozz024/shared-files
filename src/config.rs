@@ -8,7 +8,7 @@ lazy_static::lazy_static! {
 }
 
 extern "C" {
-    fn arcrop_is_mod_enabled<H: Into<Hash40>>(hash: H) -> bool;
+    fn arcrop_is_mod_enabled(hash: u64) -> bool;
 }
 
 #[derive(Debug)]
@@ -36,21 +36,24 @@ pub fn read_from_umm_path(path: &Path) {
         Ok(res) => {
             for entry in res {
                 let entry = entry.unwrap();
-                let entry_str = format!("{}", entry_str.path().display())
+                let entry_str = format!("{}", entry.path().display());
                 let mut entry_path = path.to_path_buf();
                 entry_path.push(entry.path());
-
-                // Ignore anything that starts with a period
-                if entry_path
-                    .file_name()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .starts_with(".")
-                    ||
-                    !arcrop_is_mod_enabled(Hash40::from(entry_str))
-                {
-                    continue;
+                println!("[Share Files] Path: {}", entry_str);
+                
+                unsafe {
+                    // Ignore anything that starts with a period
+                    if entry_path
+                        .file_name()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .starts_with(".")
+                        ||
+                        !arcrop_is_mod_enabled(Hash40::from(entry_str.as_str()).as_u64())
+                    {
+                        continue;
+                    }
                 }
 
                 entry_path.push("share.toml");
