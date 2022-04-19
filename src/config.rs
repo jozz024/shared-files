@@ -15,7 +15,7 @@ pub enum Section {
 
 #[derive(Debug)]
 pub struct Info {
-    pub size: usize,
+    pub size: Option<usize>,
     pub hash: Hash40,
     pub fuse_path: String,
     pub path: PathBuf,
@@ -130,11 +130,11 @@ fn add_to_config(content: String, path: &PathBuf) {
     }
 }
 
-pub fn get_file_size(path: &PathBuf) -> usize {
+pub fn get_file_size(path: &PathBuf) -> Option<usize> {
     let md = metadata(&path);
     
     match md {
-        Ok(info) => info.len() as usize,
-        Err(_err) => 5000000
+        Ok(info) => Some(info.len() as usize),
+        Err(_err) => None
     }
 }

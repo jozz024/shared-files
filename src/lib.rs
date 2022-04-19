@@ -7,7 +7,6 @@ use config::*;
 
 #[arc_callback]
 fn normal_callback(hash: u64, data: &mut [u8]) -> Option<usize> {
-    println!("{:#x}", hash);
     match SHARED_FILES.lock().unwrap().get(&hash) {
         Some(info) => {
             match std::fs::read(info.path.to_path_buf()) {
@@ -42,7 +41,7 @@ fn stream_callback(hash: u64) -> Option<PathBuf> {
 
 fn get_configs() {
     read_from_umm_path(Path::new("sd:/ultimate/mods"));
-    println!("[Shared Files::main] Finished reading UMM path!");
+    println!("[Shared Files::get_configs] Finished reading UMM path!");
 }
 
 #[skyline::main(name = "share-files")]
@@ -51,9 +50,22 @@ pub fn main() {
 
     for (k, v) in SHARED_FILES.lock().unwrap().iter() {
         match v.section {
-            Section::Normal => normal_callback::install(*k, v.size),
+            Section::Normal => {
+                match v.size {
+                    Some(size) => {
+                        normal_callback::install(*k, size)
+                    },
+                    None => {
+                        println!(
+                            "[Shared Files::main] Did not install callback {:#x} since file was not found ({}).",
+                            v.hash.as_u64(),
+                            v.fuse_path,
+                            v.path.display()
+                        );
+                    }
+                }
+            },
             Section::Stream => stream_callback::install(*k)
         }
-        println!("{:#x} -> {:?}", k, v);
     }
 }
