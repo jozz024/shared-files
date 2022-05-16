@@ -29,4 +29,4 @@ will make `def_mario_001_col` in c02 and c01 load the `c00` file.
 ## Important Note
 
 ~~The file that will be shared needs to exist in the folder that the `share.toml` goes to~~
-Not anymore, unless the file is modded.
+~~Not anymore, unless the file is modded.~~ Scratch that, file needs to be there or else it won't work (for memory releated reasons)
