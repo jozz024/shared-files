@@ -5,6 +5,20 @@ use std::path::{Path, PathBuf};
 mod config;
 use config::*;
 
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub enum Event {
+    ArcFilesystemMounted,
+    ModFilesystemMounted,
+}
+
+pub type EventCallbackFn = extern "C" fn(Event);
+
+extern "C" {
+    fn arcrop_register_event_callback(ty: Event, callback: EventCallbackFn);
+}
+
+
 #[arc_callback]
 fn normal_callback(hash: u64, data: &mut [u8]) -> Option<usize> {
     match SHARED_FILES.lock().unwrap().get(&hash) {
@@ -39,6 +53,17 @@ fn stream_callback(hash: u64) -> Option<PathBuf> {
     }
 }
 
+pub extern "C" fn main_real(event: Event) {
+    get_configs();
+
+    for (k, v) in SHARED_FILES.lock().unwrap().iter() {
+        match v.section {
+            Section::Normal => normal_callback::install(*k, v.size),
+            Section::Stream => stream_callback::install(*k)
+        }
+    }
+}
+
 fn get_configs() {
     read_from_umm_path(Path::new("sd:/ultimate/mods"));
     println!("[Shared Files::get_configs] Finished reading UMM path!");
@@ -46,26 +71,8 @@ fn get_configs() {
 
 #[skyline::main(name = "share-files")]
 pub fn main() {
-    get_configs();
-
-    for (k, v) in SHARED_FILES.lock().unwrap().iter() {
-        match v.section {
-            Section::Normal => {
-                match v.size {
-                    Some(size) => {
-                        normal_callback::install(*k, size)
-                    },
-                    None => {
-                        println!(
-                            "[Shared Files::main] Did not install callback {:#x} since file was not found ({}).",
-                            v.hash.as_u64(),
-                            v.fuse_path,
-                            v.path.display()
-                        );
-                    }
-                }
-            },
-            Section::Stream => stream_callback::install(*k)
-        }
+    unsafe {
+        arcrop_register_event_callback(Event::ArcFilesystemMounted, main_real);
     }
+
 }

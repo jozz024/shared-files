@@ -12,7 +12,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
-skyline_smash = { git = "https://github.com/ultimate-research/skyline-smash.git" }
 arcropolis-api = { git = "https://github.com/Raytwo/arcropolis_api" }
 lazy_static = "1.4"
 toml = "0.5.8"

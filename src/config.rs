@@ -15,7 +15,7 @@ pub enum Section {
 
 #[derive(Debug)]
 pub struct Info {
-    pub size: Option<usize>,
+    pub size: usize,
     pub hash: Hash40,
     pub fuse_path: String,
     pub path: PathBuf,
@@ -77,7 +77,7 @@ pub fn read_from_umm_path(path: &Path) {
 
 // pub fn read_from_rom_path(path: &Path) {
 //     match fs::read_to_string(path) {
-//         Ok(res) => { 
+//         Ok(res) => {
 //             let mut parent_path = path.to_path_buf();
 //             parent_path.pop();
 //             add_to_config(res, &parent_path);
@@ -102,6 +102,7 @@ fn add_to_config(content: String, path: &PathBuf) {
     };
 
     for (k, v) in config.files.iter() {        
+        println!("{}", k);
         // let k = k.replace("stream:", "stream;").replace("prebuilt:", "prebuilt;"); // File that will be loaded
         let k = k.replace(":", ";"); // File that will be loaded
         
@@ -114,7 +115,7 @@ fn add_to_config(content: String, path: &PathBuf) {
 
 
             SHARED_FILES.lock().unwrap().insert(Hash40::from(&i[..]).as_u64(), Info {
-                size: get_file_size(&file_path),
+                size: get_file_size(&file_path).unwrap_or(get_file_size(&Path::new(&format!("arc:/{}", k)).to_path_buf()).unwrap()),
                 hash: Hash40::from(&k[..]),
                 fuse_path: format!("arc:/{}", k),
                 path: file_path,
@@ -132,7 +133,7 @@ fn add_to_config(content: String, path: &PathBuf) {
 
 pub fn get_file_size(path: &PathBuf) -> Option<usize> {
     let md = metadata(&path);
-    
+
     match md {
         Ok(info) => Some(info.len() as usize),
         Err(_err) => None
